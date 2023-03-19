@@ -42,7 +42,6 @@ func main() {
 	router := routes.New()
 
 	services.Initialize()
-	// services.GetTokenCount()
 
 	server := &http.Server{
 		Addr:         services.Config.ServerAddr + ":" + services.Config.ServerPort,

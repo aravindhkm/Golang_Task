@@ -5,12 +5,15 @@ import (
 	"Hdfc_Assignment/utils"
 	"encoding/json"
 	"errors"
-	"fmt"
+	"log"
 	"os"
+
+	// "reflect"
 
 	"github.com/kamva/mgm/v3"
 	"github.com/kamva/mgm/v3/builder"
 	"github.com/kamva/mgm/v3/field"
+	"github.com/kamva/mgm/v3/operator"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -22,62 +25,67 @@ func getCount() int {
 
 	res, err := mgm.Coll(&model.Product{}).Aggregate(mgm.Ctx(), bson.A{builder.S(group)}, nil)
 	if err != nil {
-		fmt.Println("error 2", err)
+		panic(err)
 	}
-
-	fmt.Println("Raw Result", res.RemainingBatchLength())
 
 	return res.RemainingBatchLength()
 }
 
-func GetTokenCount() {
-	//gotResult := []interface{}{}
-	group := builder.Group("$_id", nil)
+func GetTokenCount() int32 {
+	var gotResult = []map[string]interface{}{}
 
-	res, err := mgm.Coll(&model.Token{}).Aggregate(mgm.Ctx(), bson.A{builder.S(group)}, nil)
+	count := bson.M{operator.Count: "data"}
+	found, err := mgm.Coll(&model.Token{}).Aggregate(mgm.Ctx(), bson.A{count}, nil)
 	if err != nil {
-		fmt.Println("error 2", err)
+		panic(err)
 	}
+	found.All(mgm.Ctx(), &gotResult)
 
-	fmt.Println("Raw Result", res.RemainingBatchLength())
-	// res.All(mgm.Ctx(),gotResult)
-	// fmt.Println("res",gotResult)
+	return gotResult[0]["data"].(int32)
+}
 
+func GetProductCount() int32 {
+	var gotResult = []map[string]interface{}{}
+
+	count := bson.M{operator.Count: "data"}
+	found, err := mgm.Coll(&model.Product{}).Aggregate(mgm.Ctx(), bson.A{count}, nil)
+	if err != nil {
+		panic(err)
+	}
+	found.All(mgm.Ctx(), &gotResult)
+
+	return gotResult[0]["data"].(int32)
 }
 
 func Initialize() {
-
-	if getCount() != 0 {
+	if GetProductCount() != 0 {
 		return
 	}
 
 	byteValues, err := os.ReadFile("data.json")
 	if err != nil {
-		fmt.Println("error 1", err)
+		panic(err)
 	}
 
 	var docs []model.Product
 	err = json.Unmarshal(byteValues, &docs)
 
 	if err != nil {
-		fmt.Println("error 2", err)
+		panic(err)
 	}
 
 	newData := []interface{}{}
-
 	for j := range docs {
 		newData = append(newData, docs[j])
 	}
 
-	// fmt.Println("newData", newData)
-
 	res, err := mgm.Coll(&model.Product{}).InsertMany(mgm.Ctx(), newData)
 
 	if err != nil {
-		fmt.Println("error 2", err)
+		panic(err)
 	}
 
-	fmt.Println("Res", res)
+	log.Fatalln("InsertProduct", res)
 }
 
 // CreateProduct create new product record
