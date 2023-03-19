@@ -54,10 +54,10 @@ func PlaceUserOrder(
 
 	var getOrderId []primitive.ObjectID
 
-	getOrderId = append(getOrderId, user.CurrentIds...)
+	getOrderId = append(getOrderId, user.PlacedOrderIds...)
 	getOrderId = append(getOrderId, orderId)
 
-	user.CurrentIds = getOrderId
+	user.PlacedOrderIds = getOrderId
 	err = mgm.Coll(user).Update(user)
 
 	if err != nil {
@@ -67,7 +67,7 @@ func PlaceUserOrder(
 	return nil
 }
 
-// UpdateUserOrder updates a user order record with id
+// CompleteUserOrder updates a user order record with id
 func CompleteUserOrder(
 	userId primitive.ObjectID,
 	orderId primitive.ObjectID) error {
@@ -81,11 +81,11 @@ func CompleteUserOrder(
 	var getCompleteId []primitive.ObjectID
 	var isExist bool
 
-	for _,arrData := range user.CurrentIds {
+	for _, arrData := range user.PlacedOrderIds {
 		if arrData != orderId {
 			getOrderId = append(getOrderId, arrData)
 		} else if arrData == orderId {
-			isExist = true;
+			isExist = true
 		}
 	}
 
@@ -93,11 +93,51 @@ func CompleteUserOrder(
 		return errors.New("Invalid Order Id")
 	}
 
-	getCompleteId = append(getCompleteId, user.OrderIds...)
+	getCompleteId = append(getCompleteId, user.CompletedOrderIds...)
 	getCompleteId = append(getCompleteId, orderId)
 
-	user.CurrentIds = getOrderId
-	user.OrderIds = getCompleteId
+	user.PlacedOrderIds = getOrderId
+	user.CompletedOrderIds = getCompleteId
+	err = mgm.Coll(user).Update(user)
+
+	if err != nil {
+		return errors.New("cannot update")
+	}
+
+	return nil
+}
+
+// CompleteUserOrder updates a user order record with id
+func CancelUserOrder(
+	userId primitive.ObjectID,
+	orderId primitive.ObjectID) error {
+	user := &db.User{}
+	err := mgm.Coll(user).FindByID(userId, user)
+	if err != nil {
+		return errors.New("cannot find note")
+	}
+
+	var getOrderId []primitive.ObjectID
+	var getCompleteId []primitive.ObjectID
+	var isExist bool
+
+	for _, arrData := range user.PlacedOrderIds {
+		if arrData != orderId {
+			getOrderId = append(getOrderId, arrData)
+		} else if arrData == orderId {
+			isExist = true
+		}
+	}
+
+	if !isExist {
+		return errors.New("Invalid Order Id")
+	}
+
+	getCompleteId = append(getCompleteId, user.CanceledOrderIds...)
+	getCompleteId = append(getCompleteId, orderId)
+
+	user.PlacedOrderIds = getOrderId
+	user.CanceledOrderIds = getCompleteId
 	err = mgm.Coll(user).Update(user)
 
 	if err != nil {
@@ -151,6 +191,17 @@ func FindProductById(userId primitive.ObjectID) (*db.Product, error) {
 	return product, nil
 }
 
+// FindUserById find user by id
+func FindOrderById(userId primitive.ObjectID) (*db.Order, error) {
+	order := &db.Order{}
+	err := mgm.Coll(order).FindByID(userId, order)
+	if err != nil {
+		return nil, errors.New("cannot find user")
+	}
+
+	return order, nil
+}
+
 // FindUserByEmail find user by email
 func FindUserByEmail(email string) (*db.User, error) {
 	user := &db.User{}
@@ -186,7 +237,6 @@ func FindEmployeeByEmail(email string) (*db.Employee, error) {
 
 // CheckUserMail search user by email, return error if someone uses
 func CheckUserMail(email string, role string) error {
-
 	if role == db.RoleAdmin {
 		admin := &db.Admin{}
 		adminCollection := mgm.Coll(admin)

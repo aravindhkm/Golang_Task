@@ -25,6 +25,36 @@ func CreateOrderValidator() gin.HandlerFunc {
 	}
 }
 
+func CancelOrderValidator() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		var createOrderRequest utils.OrderRequest
+		_ = c.ShouldBindBodyWith(&createOrderRequest, binding.JSON)
+
+		if err := createOrderRequest.Validate(); err != nil {
+			utils.SendErrorResponse(c, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		c.Next()
+	}
+}
+
+func CompleteOrderValidator() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		var createOrderRequest utils.OrderRequest
+		_ = c.ShouldBindBodyWith(&createOrderRequest, binding.JSON)
+
+		if err := createOrderRequest.Validate(); err != nil {
+			utils.SendErrorResponse(c, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		c.Next()
+	}
+}
+
 func GetOrdersValidator() gin.HandlerFunc {
 	return func(c *gin.Context) {
 

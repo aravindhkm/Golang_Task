@@ -1,6 +1,8 @@
 package models
 
 import (
+	"time"
+
 	"github.com/kamva/mgm/v3"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -17,7 +19,7 @@ type Order struct {
 	DiscountAmount     int                  `json:"discountAmount," bson:"discountAmount,"`
 	Address            string               `json:"address" bson:"address"`
 	OrderStatus        string               `json:"orderStatus" bson:"orderStatus"`
-	DispatchDate       string               `json:"dispatchDate" bson:"dispatchDate"`
+	DispatchDate       time.Time            `json:"dispatchedDate" bson:"dispatchedDate"`
 }
 
 func NewOrder(
@@ -30,6 +32,7 @@ func NewOrder(
 	discountAmount int,
 	address string,
 ) *Order {
+	var currTime time.Time;
 	return &Order{
 		UserId:             userId,
 		ProductId:          productId,
@@ -40,7 +43,7 @@ func NewOrder(
 		DiscountAmount:     discountAmount,
 		Address:            address,
 		OrderStatus:        "Placed",
-		DispatchDate:       "",
+		DispatchDate:       currTime,
 	}
 }
 

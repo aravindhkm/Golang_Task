@@ -5,7 +5,6 @@ import (
 	"Hdfc_Assignment/utils"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"os"
 
@@ -51,12 +50,9 @@ func GetProductCount() int32 {
 	count := bson.M{operator.Count: "data"}
 	found, err := mgm.Coll(&model.Product{}).Aggregate(mgm.Ctx(), bson.A{count}, nil)
 	if err != nil {
-		fmt.Println("init err", err)
 		panic(err)
 	}
 	found.All(mgm.Ctx(), &gotResult)
-
-	fmt.Println("call", len(gotResult))
 
 	if len(gotResult) == 0 {
 		return 0
@@ -170,6 +166,23 @@ func UpdateProduct(userId primitive.ObjectID, productId primitive.ObjectID, requ
 
 	product.Title = request.Title
 	product.Description = request.Description
+	err = mgm.Coll(product).Update(product)
+
+	if err != nil {
+		return errors.New("cannot update")
+	}
+
+	return nil
+}
+
+func UpdateProductCancelOrder(productId primitive.ObjectID, orderedStock int) error {
+	product := &model.Product{}
+	err := mgm.Coll(product).FindByID(productId, product)
+	if err != nil {
+		return errors.New("cannot find product")
+	}
+
+	product.Stock += orderedStock
 	err = mgm.Coll(product).Update(product)
 
 	if err != nil {

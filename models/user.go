@@ -13,14 +13,15 @@ const (
 )
 
 type User struct {
-	mgm.DefaultModel `bson:",inline"`
-	Email            string               `json:"email" bson:"email"`
-	Password         string               `json:"-" bson:"password"`
-	Name             string               `json:"name" bson:"name"`
-	Role             string               `json:"role" bson:"role"`
-	MailVerified     bool                 `json:"mail_verified" bson:"mail_verified"`
-	CurrentIds       []primitive.ObjectID `json:"currentOrderIds" bson:"currentOrderIds"`
-	OrderIds         []primitive.ObjectID `json:"orderIds" bson:"orderIds"`
+	mgm.DefaultModel  `bson:",inline"`
+	Email             string               `json:"email" bson:"email"`
+	Password          string               `json:"-" bson:"password"`
+	Name              string               `json:"name" bson:"name"`
+	Role              string               `json:"role" bson:"role"`
+	MailVerified      bool                 `json:"mail_verified" bson:"mail_verified"`
+	PlacedOrderIds    []primitive.ObjectID `json:"placedOrderIds" bson:"placedOrderIds"`
+	CompletedOrderIds []primitive.ObjectID `json:"completedOrderIds" bson:"completedOrderIds"`
+	CanceledOrderIds  []primitive.ObjectID `json:"canceledOrderIds" bson:"canceledOrderIds"`
 }
 
 type UserClaims struct {

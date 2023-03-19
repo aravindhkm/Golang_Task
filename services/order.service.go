@@ -4,6 +4,7 @@ import (
 	db "Hdfc_Assignment/models"
 	"Hdfc_Assignment/utils"
 	"errors"
+	"time"
 
 	"github.com/kamva/mgm/v3"
 	"github.com/kamva/mgm/v3/field"
@@ -40,6 +41,30 @@ func CreateOrder(
 	return order, nil
 }
 
+// OrderStatus order from the record
+func SetOrderStatus(
+	orderId primitive.ObjectID,
+	status string)  (*db.Order, error) {
+	order := &db.Order{}
+	err := mgm.Coll(order).FindByID(orderId, order)
+	if err != nil {
+		return nil, errors.New("cannot find order")
+	}
+
+	order.OrderStatus = status
+
+	if status == "Dispatched" {
+		order.DispatchDate = time.Now()
+	}
+	err = mgm.Coll(order).Update(order)
+
+	if err != nil {
+		return nil, errors.New("cannot update")
+	}
+
+	return order,nil
+}
+
 // GetOrders get paginated order list
 func GetOrders(userId primitive.ObjectID, page int, limit int) ([]db.Order, error) {
 	var orders []db.Order
@@ -73,8 +98,8 @@ func GetOrderById(userId primitive.ObjectID, orderId primitive.ObjectID) (*db.Or
 
 // UpdateOrder updates a order with id
 func UpdateOrder(
-	userId primitive.ObjectID, 
-	orderId primitive.ObjectID, 
+	userId primitive.ObjectID,
+	orderId primitive.ObjectID,
 	request *utils.OrderRequest) error {
 	order := &db.Order{}
 	err := mgm.Coll(order).FindByID(orderId, order)
@@ -87,7 +112,6 @@ func UpdateOrder(
 	}
 
 	order.Address = request.Address
-	// order.OrderStatus = request.Mobile
 	err = mgm.Coll(order).Update(order)
 
 	if err != nil {

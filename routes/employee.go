@@ -16,6 +16,12 @@ func EmployeeRoute(router *gin.RouterGroup, handlers ...gin.HandlerFunc) {
 			controllers.CreateNewEmployee,
 		)
 
+		emp.POST(
+			"/dispatchOrder/:id",
+			validators.PathIdValidator(),
+			controllers.DispatchOrder,
+		)
+
 		emp.GET(
 			"",
 			validators.GetNotesValidator(),

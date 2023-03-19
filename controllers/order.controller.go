@@ -4,7 +4,6 @@ import (
 	db "Hdfc_Assignment/models"
 	"Hdfc_Assignment/services"
 	"Hdfc_Assignment/utils"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -73,7 +72,7 @@ func CreateNewOrder(c *gin.Context) {
 
 	//var GetProductId []primitive.ObjectID
 	for index, getId := range requestBody.ProductId {
-		fmt.Println("getId", getId)
+		// fmt.Println("getId", getId)
 		data, err := services.FindProductById(getId)
 
 		if err != nil ||
@@ -127,6 +126,174 @@ func CreateNewOrder(c *gin.Context) {
 	}
 
 	services.PlaceUserOrder(requestBody.UserId, order.ID)
+
+	response.StatusCode = http.StatusCreated
+	response.Success = true
+	response.Data = gin.H{"order": order}
+	response.SendResponse(c)
+}
+
+func CancelOrder(c *gin.Context) {
+	response := &utils.Response{
+		StatusCode: http.StatusBadRequest,
+		Success:    false,
+	}
+
+	idHex := c.Param("id")
+	orderId, _ := primitive.ObjectIDFromHex(idHex)
+
+	userId, exists := c.Get("userId")
+	if !exists {
+		response.StatusCode = http.StatusBadRequest
+		response.Message = "cannot get user"
+		response.SendResponse(c)
+		return
+	}
+
+	userData, err := services.FindUserById(userId.(primitive.ObjectID))
+	if err != nil {
+		response.StatusCode = http.StatusBadRequest
+		response.Message = err.Error()
+		response.SendResponse(c)
+		return
+	}
+
+	orderData, err := services.FindOrderById(orderId)
+	if err != nil {
+		response.StatusCode = http.StatusBadRequest
+		response.Message = err.Error()
+		response.SendResponse(c)
+		return
+	}
+
+	if userData.Role == db.RoleEmployee {
+		response.StatusCode = http.StatusBadRequest
+		response.Message = "Only User Or Admin Can Callable"
+		response.SendResponse(c)
+		return
+	}
+
+	if orderData.UserId != userData.ID {
+		response.StatusCode = http.StatusBadRequest
+		response.Message = "Your not authorized to cancel the order"
+		response.SendResponse(c)
+		return
+	}
+
+	for index, getId := range orderData.ProductId {
+		services.UpdateProductCancelOrder(getId, orderData.OrderQuantity[index])
+	}
+
+	order, err := services.SetOrderStatus(orderId, "Cancelled")
+	if err != nil {
+		response.Message = err.Error()
+		response.SendResponse(c)
+		return
+	}
+
+	services.CancelUserOrder(orderData.UserId, orderId)
+
+	response.StatusCode = http.StatusCreated
+	response.Success = true
+	response.Data = gin.H{"order": order}
+	response.SendResponse(c)
+}
+
+func DispatchOrder(c *gin.Context) {
+	response := &utils.Response{
+		StatusCode: http.StatusBadRequest,
+		Success:    false,
+	}
+
+	idHex := c.Param("id")
+	orderId, _ := primitive.ObjectIDFromHex(idHex)
+
+	userId, exists := c.Get("userId")
+	if !exists {
+		response.StatusCode = http.StatusBadRequest
+		response.Message = "cannot get user"
+		response.SendResponse(c)
+		return
+	}
+
+	empData, err := services.FindEmployeeById(userId.(primitive.ObjectID))
+	if err != nil {
+		response.StatusCode = http.StatusBadRequest
+		response.Message = err.Error()
+		response.SendResponse(c)
+		return
+	}
+
+	// orderData, err := services.FindOrderById(orderId)
+	// if err != nil {
+	// 	response.StatusCode = http.StatusBadRequest
+	// 	response.Message = err.Error()
+	// 	response.SendResponse(c)
+	// 	return
+	// }
+
+	if empData.Role == db.RoleUser {
+		response.StatusCode = http.StatusBadRequest
+		response.Message = "Only Employee Or Admin Can Callable"
+		response.SendResponse(c)
+		return
+	}
+
+	order, err := services.SetOrderStatus(orderId, "Dispatched")
+	if err != nil {
+		response.Message = err.Error()
+		response.SendResponse(c)
+		return
+	}
+
+	// services.CompleteUserOrder(orderData.UserId,orderId)
+
+	response.StatusCode = http.StatusCreated
+	response.Success = true
+	response.Data = gin.H{"order": order}
+	response.SendResponse(c)
+}
+
+func CompleteOrder(c *gin.Context) {
+	response := &utils.Response{
+		StatusCode: http.StatusBadRequest,
+		Success:    false,
+	}
+
+	idHex := c.Param("id")
+	orderId, _ := primitive.ObjectIDFromHex(idHex)
+
+	userId, exists := c.Get("userId")
+	if !exists {
+		response.StatusCode = http.StatusBadRequest
+		response.Message = "cannot get user"
+		response.SendResponse(c)
+		return
+	}
+
+	userData, err := services.FindUserById(userId.(primitive.ObjectID))
+	if err != nil {
+		response.StatusCode = http.StatusBadRequest
+		response.Message = err.Error()
+		response.SendResponse(c)
+		return
+	}
+
+	if userData.Role == db.RoleEmployee {
+		response.StatusCode = http.StatusBadRequest
+		response.Message = "Only User Or Admin Can Callable"
+		response.SendResponse(c)
+		return
+	}
+
+	order, err := services.SetOrderStatus(orderId, "Completed")
+	if err != nil {
+		response.Message = err.Error()
+		response.SendResponse(c)
+		return
+	}
+
+	services.CompleteUserOrder(userData.ID, orderId)
 
 	response.StatusCode = http.StatusCreated
 	response.Success = true

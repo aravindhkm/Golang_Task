@@ -16,6 +16,18 @@ func OrderRoute(router *gin.RouterGroup, handlers ...gin.HandlerFunc) {
 			controllers.CreateNewOrder,
 		)
 
+		emp.POST(
+			"/cancelOrder/:id",
+			validators.PathIdValidator(),
+			controllers.CancelOrder,
+		)
+
+		emp.POST(
+			"/completeOrder/:id",
+			validators.PathIdValidator(),
+			controllers.CompleteOrder,
+		)
+
 		emp.GET(
 			"",
 			validators.GetNotesValidator(),
