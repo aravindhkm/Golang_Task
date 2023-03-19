@@ -40,7 +40,7 @@ func CreateNewOrder(c *gin.Context) {
 		return
 	}
 
-	res, err := services.FindUserById(userId.(primitive.ObjectID))
+	userData, err := services.FindUserById(userId.(primitive.ObjectID))
 	if err != nil {
 		response.StatusCode = http.StatusBadRequest
 		response.Message = err.Error()
@@ -48,7 +48,7 @@ func CreateNewOrder(c *gin.Context) {
 		return
 	}
 
-	if res.Role == db.RoleEmployee {
+	if userData.Role == db.RoleEmployee {
 		response.StatusCode = http.StatusBadRequest
 		response.Message = "Only User Or Admin Can Callable"
 		response.SendResponse(c)
@@ -109,8 +109,8 @@ func CreateNewOrder(c *gin.Context) {
 	order, err := services.CreateOrder(
 		// GetUserId,
 		// GetProductId,
-
-		requestBody.UserId,
+		// requestBody.UserId,
+		userData.ID,
 		requestBody.ProductId,
 		requestBody.OrderQuantity,
 		totalCost,
@@ -125,12 +125,19 @@ func CreateNewOrder(c *gin.Context) {
 		return
 	}
 
-	services.PlaceUserOrder(requestBody.UserId, order.ID)
+	services.PlaceUserOrder(userData.ID, order.ID)
 
 	response.StatusCode = http.StatusCreated
 	response.Success = true
 	response.Data = gin.H{"order": order}
 	response.SendResponse(c)
+}
+
+func getZeroId() primitive.ObjectID {
+	id, _ := primitive.ObjectIDFromHex("")
+
+	return id
+
 }
 
 func CancelOrder(c *gin.Context) {
@@ -184,7 +191,7 @@ func CancelOrder(c *gin.Context) {
 		services.UpdateProductCancelOrder(getId, orderData.OrderQuantity[index])
 	}
 
-	order, err := services.SetOrderStatus(orderId, "Cancelled")
+	order, err := services.SetOrderStatus(orderId, getZeroId(), "Cancelled")
 	if err != nil {
 		response.Message = err.Error()
 		response.SendResponse(c)
@@ -239,7 +246,7 @@ func DispatchOrder(c *gin.Context) {
 		return
 	}
 
-	order, err := services.SetOrderStatus(orderId, "Dispatched")
+	order, err := services.SetOrderStatus(orderId, empData.ID, "Dispatched")
 	if err != nil {
 		response.Message = err.Error()
 		response.SendResponse(c)
@@ -286,7 +293,7 @@ func CompleteOrder(c *gin.Context) {
 		return
 	}
 
-	order, err := services.SetOrderStatus(orderId, "Completed")
+	order, err := services.SetOrderStatus(orderId, getZeroId(), "Completed")
 	if err != nil {
 		response.Message = err.Error()
 		response.SendResponse(c)

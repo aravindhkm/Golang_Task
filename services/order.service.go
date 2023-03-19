@@ -44,7 +44,8 @@ func CreateOrder(
 // OrderStatus order from the record
 func SetOrderStatus(
 	orderId primitive.ObjectID,
-	status string)  (*db.Order, error) {
+	empId primitive.ObjectID,
+	status string) (*db.Order, error) {
 	order := &db.Order{}
 	err := mgm.Coll(order).FindByID(orderId, order)
 	if err != nil {
@@ -55,6 +56,7 @@ func SetOrderStatus(
 
 	if status == "Dispatched" {
 		order.DispatchDate = time.Now()
+		order.DeliveryEmployee = empId
 	}
 	err = mgm.Coll(order).Update(order)
 
@@ -62,7 +64,7 @@ func SetOrderStatus(
 		return nil, errors.New("cannot update")
 	}
 
-	return order,nil
+	return order, nil
 }
 
 // GetOrders get paginated order list

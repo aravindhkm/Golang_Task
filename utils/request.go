@@ -9,7 +9,6 @@ import (
 )
 
 type OrderRequest struct {
-	UserId        primitive.ObjectID   `json:"userId"`
 	ProductId     []primitive.ObjectID `json:"productId"`
 	OrderQuantity []int                `json:"orderQuantity"`
 	Address       string               `json:"address"`
@@ -19,7 +18,7 @@ func (a OrderRequest) Validate() error {
 	return validation.ValidateStruct(&a,
 		// validation.Field(&a.UserId, validation.Required, is.MongoID),
 		// validation.Field(&a.ProductId, validation.Required, validation.Each(is.MongoID)),
-		validation.Field(&a.UserId, validation.Required),
+		// validation.Field(&a.UserId, validation.Required),
 		validation.Field(&a.ProductId, validation.Required),
 		validation.Field(&a.OrderQuantity, validation.Required),
 		validation.Field(&a.Address, validation.Required, validation.Length(5, 150)),

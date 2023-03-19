@@ -90,7 +90,7 @@ func CompleteUserOrder(
 	}
 
 	if !isExist {
-		return errors.New("Invalid Order Id")
+		return errors.New("invalid Order Id")
 	}
 
 	getCompleteId = append(getCompleteId, user.CompletedOrderIds...)
@@ -130,7 +130,7 @@ func CancelUserOrder(
 	}
 
 	if !isExist {
-		return errors.New("Invalid Order Id")
+		return errors.New("invalid Order Id")
 	}
 
 	getCompleteId = append(getCompleteId, user.CanceledOrderIds...)
