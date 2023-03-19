@@ -107,9 +107,6 @@ func CreateNewOrder(c *gin.Context) {
 	//, _ := primitive.ObjectIDFromHex(requestBody.ProductId)
 
 	order, err := services.CreateOrder(
-		// GetUserId,
-		// GetProductId,
-		// requestBody.UserId,
 		userData.ID,
 		requestBody.ProductId,
 		requestBody.OrderQuantity,
@@ -180,9 +177,9 @@ func CancelOrder(c *gin.Context) {
 		return
 	}
 
-	if orderData.UserId != userData.ID {
+	if orderData.UserId != userData.ID || orderData.OrderStatus != "Placed" {
 		response.StatusCode = http.StatusBadRequest
-		response.Message = "Your not authorized to cancel the order"
+		response.Message = "Your not authorized to cancel the order or Invalid Order Status"
 		response.SendResponse(c)
 		return
 	}
@@ -231,13 +228,20 @@ func DispatchOrder(c *gin.Context) {
 		return
 	}
 
-	// orderData, err := services.FindOrderById(orderId)
-	// if err != nil {
-	// 	response.StatusCode = http.StatusBadRequest
-	// 	response.Message = err.Error()
-	// 	response.SendResponse(c)
-	// 	return
-	// }
+	orderData, err := services.FindOrderById(orderId)
+	if err != nil {
+		response.StatusCode = http.StatusBadRequest
+		response.Message = err.Error()
+		response.SendResponse(c)
+		return
+	}
+
+	if orderData.OrderStatus != "Placed" {
+		response.StatusCode = http.StatusBadRequest
+		response.Message = "Invalid Order Status"
+		response.SendResponse(c)
+		return
+	}
 
 	if empData.Role == db.RoleUser {
 		response.StatusCode = http.StatusBadRequest
@@ -252,8 +256,6 @@ func DispatchOrder(c *gin.Context) {
 		response.SendResponse(c)
 		return
 	}
-
-	// services.CompleteUserOrder(orderData.UserId,orderId)
 
 	response.StatusCode = http.StatusCreated
 	response.Success = true
@@ -289,6 +291,21 @@ func CompleteOrder(c *gin.Context) {
 	if userData.Role == db.RoleEmployee {
 		response.StatusCode = http.StatusBadRequest
 		response.Message = "Only User Or Admin Can Callable"
+		response.SendResponse(c)
+		return
+	}
+
+	orderData, err := services.FindOrderById(orderId)
+	if err != nil {
+		response.StatusCode = http.StatusBadRequest
+		response.Message = err.Error()
+		response.SendResponse(c)
+		return
+	}
+
+	if orderData.OrderStatus != "Dispatched" {
+		response.StatusCode = http.StatusBadRequest
+		response.Message = "Invalid Order Status"
 		response.SendResponse(c)
 		return
 	}
