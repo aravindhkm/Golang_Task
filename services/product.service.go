@@ -179,6 +179,27 @@ func UpdateProduct(userId primitive.ObjectID, productId primitive.ObjectID, requ
 	return nil
 }
 
+func UpdateProductStock(productId primitive.ObjectID, orderedStock int) error {
+	product := &model.Product{}
+	err := mgm.Coll(product).FindByID(productId, product)
+	if err != nil {
+		return errors.New("cannot find product")
+	}
+
+	if product.Stock < orderedStock {
+		return errors.New("invalid quantity")
+	}
+
+	product.Stock -= orderedStock
+	err = mgm.Coll(product).Update(product)
+
+	if err != nil {
+		return errors.New("cannot update")
+	}
+
+	return nil
+}
+
 // DeleteProduct delete a product with id
 func DeleteProduct(userId primitive.ObjectID, productId primitive.ObjectID) error {
 	deleteResult, err := mgm.Coll(&model.Product{}).DeleteOne(mgm.Ctx(), bson.M{field.ID: productId, "author": userId})

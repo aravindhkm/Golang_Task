@@ -42,21 +42,70 @@ func CreateAdmin(name string, email string, plainPassword string) (*db.Admin, er
 	return admin, nil
 }
 
-// CreateEmployee create a employee record
-// func CreateEmployee(name string, email string, plainPassword string) (*db.Employee, error) {
-// 	password, err := bcrypt.GenerateFromPassword([]byte(plainPassword), bcrypt.DefaultCost)
-// 	if err != nil {
-// 		return nil, errors.New("cannot generate hashed password")
-// 	}
+// UpdateUserOrder updates a user order record with id
+func PlaceUserOrder(
+	userId primitive.ObjectID,
+	orderId primitive.ObjectID) error {
+	user := &db.User{}
+	err := mgm.Coll(user).FindByID(userId, user)
+	if err != nil {
+		return errors.New("cannot find note")
+	}
 
-// 	employee := db.NewEmployee(email, string(password), name, db.RoleEmployee)
-// 	err = mgm.Coll(employee).Create(employee)
-// 	if err != nil {
-// 		return nil, errors.New("cannot create new user")
-// 	}
+	var getOrderId []primitive.ObjectID
 
-// 	return employee, nil
-// }
+	getOrderId = append(getOrderId, user.CurrentIds...)
+	getOrderId = append(getOrderId, orderId)
+
+	user.CurrentIds = getOrderId
+	err = mgm.Coll(user).Update(user)
+
+	if err != nil {
+		return errors.New("cannot update")
+	}
+
+	return nil
+}
+
+// UpdateUserOrder updates a user order record with id
+func CompleteUserOrder(
+	userId primitive.ObjectID,
+	orderId primitive.ObjectID) error {
+	user := &db.User{}
+	err := mgm.Coll(user).FindByID(userId, user)
+	if err != nil {
+		return errors.New("cannot find note")
+	}
+
+	var getOrderId []primitive.ObjectID
+	var getCompleteId []primitive.ObjectID
+	var isExist bool
+
+	for _,arrData := range user.CurrentIds {
+		if arrData != orderId {
+			getOrderId = append(getOrderId, arrData)
+		} else if arrData == orderId {
+			isExist = true;
+		}
+	}
+
+	if !isExist {
+		return errors.New("Invalid Order Id")
+	}
+
+	getCompleteId = append(getCompleteId, user.OrderIds...)
+	getCompleteId = append(getCompleteId, orderId)
+
+	user.CurrentIds = getOrderId
+	user.OrderIds = getCompleteId
+	err = mgm.Coll(user).Update(user)
+
+	if err != nil {
+		return errors.New("cannot update")
+	}
+
+	return nil
+}
 
 // FindUserById find user by id
 func FindUserById(userId primitive.ObjectID) (*db.User, error) {
