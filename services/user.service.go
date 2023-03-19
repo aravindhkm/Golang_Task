@@ -91,6 +91,17 @@ func FindEmployeeById(userId primitive.ObjectID) (*db.Employee, error) {
 	return employee, nil
 }
 
+// FindUserById find user by id
+func FindProductById(userId primitive.ObjectID) (*db.Product, error) {
+	product := &db.Product{}
+	err := mgm.Coll(product).FindByID(userId, product)
+	if err != nil {
+		return nil, errors.New("cannot find user")
+	}
+
+	return product, nil
+}
+
 // FindUserByEmail find user by email
 func FindUserByEmail(email string) (*db.User, error) {
 	user := &db.User{}

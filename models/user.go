@@ -3,6 +3,7 @@ package models
 import (
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/kamva/mgm/v3"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 const (
@@ -13,11 +14,13 @@ const (
 
 type User struct {
 	mgm.DefaultModel `bson:",inline"`
-	Email            string `json:"email" bson:"email"`
-	Password         string `json:"-" bson:"password"`
-	Name             string `json:"name" bson:"name"`
-	Role             string `json:"role" bson:"role"`
-	MailVerified     bool   `json:"mail_verified" bson:"mail_verified"`
+	Email            string               `json:"email" bson:"email"`
+	Password         string               `json:"-" bson:"password"`
+	Name             string               `json:"name" bson:"name"`
+	Role             string               `json:"role" bson:"role"`
+	MailVerified     bool                 `json:"mail_verified" bson:"mail_verified"`
+	CurrentIds       []primitive.ObjectID `json:"currentOrderIds" bson:"currentOrderIds"`
+	OrderIds         []primitive.ObjectID `json:"orderIds" bson:"orderIds"`
 }
 
 type UserClaims struct {
