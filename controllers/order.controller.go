@@ -71,10 +71,25 @@ func CreateNewOrder(c *gin.Context) {
 	var discountPercentage int
 	var discountAmount int
 
+	//var GetProductId []primitive.ObjectID
 	for index, getId := range requestBody.ProductId {
 		fmt.Println("getId", getId)
-		noteId, _ := primitive.ObjectIDFromHex(getId.String())
-		data, err := services.FindProductById(noteId)
+		//noteId, _ := primitive.ObjectIDFromHex(getId)
+		// GetProductId = append(GetProductId, noteId)
+
+
+		// fmt.Println("GetProductId", GetProductId)
+
+		data, err := services.FindProductById(getId)
+
+
+		fmt.Println("Condition", err != nil,requestBody.OrderQuantity[index] == 0)
+		fmt.Println("data", data)
+		fmt.Println("err", err)
+		fmt.Println("OrderQuantity", requestBody.OrderQuantity[index])
+		fmt.Println("OrderQuantity All", requestBody.OrderQuantity)
+
+
 		if err != nil || requestBody.OrderQuantity[index] == 0 {
 			response.StatusCode = http.StatusBadRequest
 			response.Message = "Unable to find the product"
@@ -99,7 +114,14 @@ func CreateNewOrder(c *gin.Context) {
 		discountAmount = 0
 	}
 
+	// GetUserId, _ := primitive.ObjectIDFromHex(requestBody.UserId)
+	//, _ := primitive.ObjectIDFromHex(requestBody.ProductId)
+
+
 	order, err := services.CreateOrder(
+		// GetUserId,
+		// GetProductId,
+
 		requestBody.UserId,
 		requestBody.ProductId,
 		requestBody.OrderQuantity,
