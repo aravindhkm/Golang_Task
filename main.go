@@ -11,25 +11,6 @@ import (
 	"time"
 )
 
-// @title GoLang Rest API Starter Doc
-// @version 1.0
-// @description GoLang - Gin - RESTful - MongoDB - Redis
-// @termsOfService https://swagger.io/terms/
-
-// @contact.name Ebubekir Yiğit
-// @contact.url https://github.com/ebubekiryigit
-// @contact.email ebubekiryigit6@gmail.com
-
-// @license.name MIT License
-// @license.url https://opensource.org/licenses/MIT
-
-// @host localhost:8080
-// @BasePath /
-// @schemes http
-
-// @securityDefinitions.apikey ApiKeyAuth
-// @in header
-// @name Bearer-Token
 func main() {
 	services.LoadConfig()
 	services.InitMongoDB()
