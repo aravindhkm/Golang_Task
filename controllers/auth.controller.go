@@ -316,6 +316,7 @@ func Refresh(c *gin.Context) {
 
 		res, err := services.FindUserById(token.User)
 		if err != nil {
+			response.StatusCode = http.StatusBadRequest
 			response.Message = err.Error()
 			response.SendResponse(c)
 			return
@@ -329,6 +330,7 @@ func Refresh(c *gin.Context) {
 
 		res, err := services.FindEmployeeById(token.User)
 		if err != nil {
+			response.StatusCode = http.StatusBadRequest
 			response.Message = err.Error()
 			response.SendResponse(c)
 			return

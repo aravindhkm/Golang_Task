@@ -23,28 +23,34 @@ func EmployeeRoute(router *gin.RouterGroup, handlers ...gin.HandlerFunc) {
 		)
 
 		emp.GET(
+			"/getAllDetails",
+			validators.GetEmployeesValidator(),
+			controllers.GetAllEmployees,
+		)
+
+		emp.GET(
 			"",
-			validators.GetNotesValidator(),
-			controllers.GetNotes,
+			validators.GetEmployeesValidator(),
+			controllers.GetEmployees,
 		)
 
 		emp.GET(
 			"/:id",
 			validators.PathIdValidator(),
-			controllers.GetOneNote,
+			controllers.GetOneEmployee,
 		)
 
 		emp.PUT(
-			"/:id",
+			"/update/:id",
 			validators.PathIdValidator(),
-			validators.UpdateNoteValidator(),
-			controllers.UpdateNote,
+			validators.UpdateEmployeeValidator(),
+			controllers.UpdateEmployee,
 		)
 
 		emp.DELETE(
-			"/:id",
+			"/delete/:id",
 			validators.PathIdValidator(),
-			controllers.DeleteNote,
+			controllers.DeleteEmployee,
 		)
 	}
 }

@@ -12,19 +12,19 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-// CreateNewEmployee godoc
-// @Summary      Create Employee
-// @Description  creates a new employee
-// @Tags         employees
+// CreateNewProduct godoc
+// @Summary      Create Product
+// @Description  creates a new product
+// @Tags         products
 // @Accept       json
 // @Produce      json
-// @Param        req  body      models.EmployeeRequest true "Employee Request"
+// @Param        req  body      models.ProductRequest true "Product Request"
 // @Success      200  {object}  models.Response
 // @Failure      400  {object}  models.Response
-// @Router       /employees [post]
+// @Router       /products [post]
 // @Security     ApiKeyAuth
-func CreateNewEmployee(c *gin.Context) {
-	var requestBody utils.EmployeeRequest
+func CreateNewProduct(c *gin.Context) {
+	var requestBody utils.ProductRequest
 	_ = c.ShouldBindBodyWith(&requestBody, binding.JSON)
 
 	response := &utils.Response{
@@ -55,12 +55,28 @@ func CreateNewEmployee(c *gin.Context) {
 		return
 	}
 
-	employee, err := services.CreateEmployee(
-		requestBody.Name,
-		requestBody.Email,
-		requestBody.Password,
-		requestBody.Mobile,
-		requestBody.Address,
+	// title string,
+	// description string,
+	// price int,
+	// rating float32,
+	// stock int,
+	// brand string,
+	// productType string,
+	// category string,
+	// thumbnail string,
+	// image []string,
+
+	product, err := services.CreateProduct(
+		requestBody.Title,
+		requestBody.Description,
+		requestBody.Price,
+		requestBody.Rating,
+		requestBody.Stock,
+		requestBody.Brand,
+		requestBody.Type,
+		requestBody.Category,
+		requestBody.Thumbnail,
+		requestBody.Images,
 	)
 	if err != nil {
 		response.Message = err.Error()
@@ -70,22 +86,22 @@ func CreateNewEmployee(c *gin.Context) {
 
 	response.StatusCode = http.StatusCreated
 	response.Success = true
-	response.Data = gin.H{"employee": employee}
+	response.Data = gin.H{"product": product}
 	response.SendResponse(c)
 }
 
-// GetEmployees godoc
-// @Summary      Get Employees
-// @Description  gets user employees with pagination
-// @Tags         employees
+// GetProducts godoc
+// @Summary      Get Products
+// @Description  gets user products with pagination
+// @Tags         products
 // @Accept       json
 // @Produce      json
 // @Param        page  query    string  false  "Switch page by 'page'"
 // @Success      200  {object}  models.Response
 // @Failure      400  {object}  models.Response
-// @Router       /employees [get]
+// @Router       /products [get]
 // @Security     ApiKeyAuth
-func GetEmployees(c *gin.Context) {
+func GetProducts(c *gin.Context) {
 	response := &utils.Response{
 		StatusCode: http.StatusBadRequest,
 		Success:    false,
@@ -102,21 +118,21 @@ func GetEmployees(c *gin.Context) {
 	page, _ := strconv.Atoi(pageQuery)
 	limit := 5
 
-	employees, _ := services.GetEmployees(userId.(primitive.ObjectID), page, limit)
+	products, _ := services.GetProducts(userId.(primitive.ObjectID), page, limit)
 	hasPrev := page > 0
-	hasNext := len(employees) > limit
+	hasNext := len(products) > limit
 
 	if hasNext {
-		employees = employees[:limit]
+		products = products[:limit]
 	}
 
 	response.StatusCode = http.StatusOK
 	response.Success = true
-	response.Data = gin.H{"employees": employees, "prev": hasPrev, "next": hasNext}
+	response.Data = gin.H{"products": products, "prev": hasPrev, "next": hasNext}
 	response.SendResponse(c)
 }
 
-func GetAllEmployees(c *gin.Context) {
+func GetAllProducts(c *gin.Context) {
 	response := &utils.Response{
 		StatusCode: http.StatusBadRequest,
 		Success:    false,
@@ -143,56 +159,56 @@ func GetAllEmployees(c *gin.Context) {
 		return
 	}
 
-	employees, _ := services.GetAllEmployees(page, limit)
+	products, _ := services.GetAllProducts(page, limit)
 	hasPrev := page > 0
-	hasNext := len(employees) > limit
+	hasNext := len(products) > limit
 
 	if hasNext {
-		employees = employees[:limit]
+		products = products[:limit]
 	}
 
 	response.StatusCode = http.StatusOK
 	response.Success = true
-	response.Data = gin.H{"employees": employees, "prev": hasPrev, "next": hasNext}
+	response.Data = gin.H{"products": products, "prev": hasPrev, "next": hasNext}
 	response.SendResponse(c)
 }
 
-// GetOneEmployee godoc
-// @Summary      Get a employee
-// @Description  get employee by id
-// @Tags         employees
+// GetOneProduct godoc
+// @Summary      Get a product
+// @Description  get product by id
+// @Tags         products
 // @Accept       json
 // @Produce      json
-// @Param        id   path      string  true  "Employee ID"
+// @Param        id   path      string  true  "Product ID"
 // @Success      200  {object}  models.Response
 // @Failure      400  {object}  models.Response
-// @Router       /employees/{id} [get]
+// @Router       /products/{id} [get]
 // @Security     ApiKeyAuth
-func GetOneEmployee(c *gin.Context) {
+func GetOneProduct(c *gin.Context) {
 	response := &utils.Response{
 		StatusCode: http.StatusBadRequest,
 		Success:    false,
 	}
 
 	idHex := c.Param("id")
-	employeeId, _ := primitive.ObjectIDFromHex(idHex)
+	productId, _ := primitive.ObjectIDFromHex(idHex)
 
 	userId, exists := c.Get("userId")
 
-	if !exists || employeeId != userId {
+	if !exists || productId != userId {
 		response.StatusCode = http.StatusBadRequest
 		response.Message = "cannot get user"
 		response.SendResponse(c)
 		return
 	}
 
-	//employee, err := services.GetEmployeeFromCache(userId.(primitive.ObjectID), employeeId)
+	//product, err := services.GetProductFromCache(userId.(primitive.ObjectID), productId)
 	// if err == nil {
-	// 	utils.SendResponseData(c, gin.H{"employee": employee, "cache": true})
+	// 	utils.SendResponseData(c, gin.H{"product": product, "cache": true})
 	// 	return
 	// }
 
-	employee, err := services.GetEmployeeById(employeeId)
+	product, err := services.GetProductById(productId)
 	if err != nil {
 		response.StatusCode = http.StatusBadRequest
 		response.Message = err.Error()
@@ -200,47 +216,47 @@ func GetOneEmployee(c *gin.Context) {
 		return
 	}
 
-	//	go services.CacheOneEmployee(userId.(primitive.ObjectID), employee)
+	//	go services.CacheOneProduct(userId.(primitive.ObjectID), product)
 
 	response.StatusCode = http.StatusOK
 	response.Success = true
-	response.Data = gin.H{"employee": employee}
+	response.Data = gin.H{"product": product}
 	response.SendResponse(c)
 }
 
-// UpdateEmployee godoc
-// @Summary      Update a employee
-// @Description  updates a employee by id
-// @Tags         employees
+// UpdateProduct godoc
+// @Summary      Update a product
+// @Description  updates a product by id
+// @Tags         products
 // @Accept       json
 // @Produce      json
-// @Param        id     path    string  true  "Employee ID"
-// @Param        req    body    models.EmployeeRequest true "Employee Request"
+// @Param        id     path    string  true  "Product ID"
+// @Param        req    body    models.ProductRequest true "Product Request"
 // @Success      200  {object}  models.Response
 // @Failure      400  {object}  models.Response
-// @Router       /employees/{id} [put]
+// @Router       /products/{id} [put]
 // @Security     ApiKeyAuth
-func UpdateEmployee(c *gin.Context) {
+func UpdateProduct(c *gin.Context) {
 	response := &utils.Response{
 		StatusCode: http.StatusBadRequest,
 		Success:    false,
 	}
 
 	idHex := c.Param("id")
-	employeeId, _ := primitive.ObjectIDFromHex(idHex)
+	productId, _ := primitive.ObjectIDFromHex(idHex)
 
 	userId, exists := c.Get("userId")
-	if !exists || employeeId != userId {
+	if !exists || productId != userId {
 		response.StatusCode = http.StatusBadRequest
 		response.Message = "cannot get user"
 		response.SendResponse(c)
 		return
 	}
 
-	var employeeRequest utils.EmployeeRequest
-	_ = c.ShouldBindBodyWith(&employeeRequest, binding.JSON)
+	var productRequest utils.ProductRequest
+	_ = c.ShouldBindBodyWith(&productRequest, binding.JSON)
 
-	err := services.UpdateEmployee(employeeId, &employeeRequest)
+	err := services.UpdateProduct(productId, &productRequest)
 	if err != nil {
 		response.StatusCode = http.StatusBadRequest
 		response.Message = err.Error()
@@ -253,35 +269,35 @@ func UpdateEmployee(c *gin.Context) {
 	response.SendResponse(c)
 }
 
-// DeleteEmployee godoc
-// @Summary      Delete a employee
-// @Description  deletes employee by id
-// @Tags         employees
+// DeleteProduct godoc
+// @Summary      Delete a product
+// @Description  deletes product by id
+// @Tags         products
 // @Accept       json
 // @Produce      json
-// @Param        id   path      string  true  "Employee ID"
+// @Param        id   path      string  true  "Product ID"
 // @Success      200  {object}  models.Response
 // @Failure      400  {object}  models.Response
-// @Router       /employees/{id} [delete]
+// @Router       /products/{id} [delete]
 // @Security     ApiKeyAuth
-func DeleteEmployee(c *gin.Context) {
+func DeleteProduct(c *gin.Context) {
 	response := &utils.Response{
 		StatusCode: http.StatusBadRequest,
 		Success:    false,
 	}
 
 	idHex := c.Param("id")
-	employeeId, _ := primitive.ObjectIDFromHex(idHex)
+	productId, _ := primitive.ObjectIDFromHex(idHex)
 
 	userId, exists := c.Get("userId")
-	if !exists || employeeId != userId {
+	if !exists || productId != userId {
 		response.StatusCode = http.StatusBadRequest
 		response.Message = "cannot get user"
 		response.SendResponse(c)
 		return
 	}
 
-	err := services.DeleteEmployee(userId.(primitive.ObjectID))
+	err := services.DeleteProduct(userId.(primitive.ObjectID))
 	if err != nil {
 		response.StatusCode = http.StatusBadRequest
 		response.Message = err.Error()

@@ -44,6 +44,27 @@ func GetNotes(userId primitive.ObjectID, page int, limit int) ([]db.Note, error)
 	return notes, nil
 }
 
+// GetNotes get paginated note list
+func GetAllNotes(userId primitive.ObjectID, page int, limit int) ([]db.Note, error) {
+	var notes []db.Note
+
+	findOptions := options.Find().
+		SetSkip(int64(page * limit)).
+		SetLimit(int64(limit + 1))
+
+	err := mgm.Coll(&db.Note{}).SimpleFind(
+		&notes,
+		bson.M{},
+		findOptions,
+	)
+
+	if err != nil {
+		return nil, errors.New("cannot find notes")
+	}
+
+	return notes, nil
+}
+
 func GetNoteById(userId primitive.ObjectID, noteId primitive.ObjectID) (*db.Note, error) {
 	note := &db.Note{}
 	err := mgm.Coll(note).First(bson.M{field.ID: noteId, "author": userId}, note)

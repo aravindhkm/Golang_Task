@@ -103,12 +103,6 @@ func CreateProduct(
 	thumbnail string,
 	image []string,
 ) (*model.Product, error) {
-
-	// password, err := bcrypt.GenerateFromPassword([]byte(plainPassword), bcrypt.DefaultCost)
-	// if err != nil {
-	// 	return nil, errors.New("cannot generate hashed password")
-	// }
-
 	product := model.NewProduct(title, description, price, rating, stock, brand, productType, category, thumbnail, image)
 	err := mgm.Coll(product).Create(product)
 	if err != nil {
@@ -139,9 +133,30 @@ func GetProducts(userId primitive.ObjectID, page int, limit int) ([]model.Produc
 	return products, nil
 }
 
-func GetProductById(userId primitive.ObjectID, productId primitive.ObjectID) (*model.Product, error) {
+// GetProducts get paginated product list
+func GetAllProducts(page int, limit int) ([]model.Product, error) {
+	var products []model.Product
+
+	findOptions := options.Find().
+		SetSkip(int64(page * limit)).
+		SetLimit(int64(limit + 1))
+
+	err := mgm.Coll(&model.Product{}).SimpleFind(
+		&products,
+		bson.M{},
+		findOptions,
+	)
+
+	if err != nil {
+		return nil, errors.New("cannot find products")
+	}
+
+	return products, nil
+}
+
+func GetProductById(productId primitive.ObjectID) (*model.Product, error) {
 	product := &model.Product{}
-	err := mgm.Coll(product).First(bson.M{field.ID: productId, "author": userId}, product)
+	err := mgm.Coll(product).First(bson.M{field.ID: productId}, product)
 	if err != nil {
 		return nil, errors.New("cannot find product")
 	}
@@ -150,15 +165,11 @@ func GetProductById(userId primitive.ObjectID, productId primitive.ObjectID) (*m
 }
 
 // UpdateProduct updates a product with id
-func UpdateProduct(userId primitive.ObjectID, productId primitive.ObjectID, request *utils.ProductRequest) error {
+func UpdateProduct(productId primitive.ObjectID, request *utils.ProductRequest) error {
 	product := &model.Product{}
 	err := mgm.Coll(product).FindByID(productId, product)
 	if err != nil {
 		return errors.New("cannot find product")
-	}
-
-	if product.ID != userId {
-		return errors.New("you cannot update this product")
 	}
 
 	product.Title = request.Title
@@ -211,8 +222,8 @@ func UpdateProductStock(productId primitive.ObjectID, orderedStock int) error {
 }
 
 // DeleteProduct delete a product with id
-func DeleteProduct(userId primitive.ObjectID, productId primitive.ObjectID) error {
-	deleteResult, err := mgm.Coll(&model.Product{}).DeleteOne(mgm.Ctx(), bson.M{field.ID: productId, "author": userId})
+func DeleteProduct(productId primitive.ObjectID) error {
+	deleteResult, err := mgm.Coll(&model.Product{}).DeleteOne(mgm.Ctx(), bson.M{field.ID: productId})
 
 	if err != nil || deleteResult.DeletedCount <= 0 {
 		return errors.New("cannot delete product")
