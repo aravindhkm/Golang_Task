@@ -5,6 +5,7 @@ import (
 	"Hdfc_Assignment/utils"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/kamva/mgm/v3/operator"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -211,11 +213,55 @@ func UpdateProductStock(productId primitive.ObjectID, orderedStock int) error {
 		return errors.New("invalid quantity")
 	}
 
+	fmt.Println("orderedStock", orderedStock, product.Stock)
+
 	product.Stock -= orderedStock
 	err = mgm.Coll(product).Update(product)
 
 	if err != nil {
 		return errors.New("cannot update")
+	}
+
+	return nil
+}
+
+func UpdateMultipleProductStock(productId []primitive.ObjectID, orderedStock []int) error {
+	product := &model.Product{}
+
+	for i := 0; i < len(productId); i++ {
+		err := mgm.TransactionWithCtx(mgm.Ctx(), func(session mongo.Session, sc mongo.SessionContext) error {
+
+			err := mgm.Coll(product).FindByIDWithCtx(sc, productId[i], product)
+			if err != nil {
+				session.AbortTransaction(sc)
+				return errors.New("cannot find product")
+			}
+
+			if product.Stock < orderedStock[i] {
+				session.AbortTransaction(sc)
+				return errors.New("invalid quantity")
+			}
+
+			product.Stock -= orderedStock[i]
+			err = mgm.Coll(product).UpdateWithCtx(sc, product)
+
+			if err != nil {
+				session.AbortTransaction(sc)
+				return errors.New("cannot update")
+			}
+
+			err = session.CommitTransaction(mgm.Ctx())
+			if err != nil {
+				return err
+			}
+
+			return nil
+		})
+
+		if err != nil {
+			return errors.New("cannot update")
+		}
+
 	}
 
 	return nil

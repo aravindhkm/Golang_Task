@@ -68,7 +68,7 @@ func SetOrderStatus(
 }
 
 // GetOrders get paginated order list
-func GetOrders(userId primitive.ObjectID, page int, limit int) ([]db.Order, error) {
+func GetOrders(page int, limit int) ([]db.Order, error) {
 	var orders []db.Order
 
 	findOptions := options.Find().
@@ -77,7 +77,7 @@ func GetOrders(userId primitive.ObjectID, page int, limit int) ([]db.Order, erro
 
 	err := mgm.Coll(&db.Order{}).SimpleFind(
 		&orders,
-		bson.M{"author": userId},
+		bson.M{},
 		findOptions,
 	)
 
@@ -88,9 +88,9 @@ func GetOrders(userId primitive.ObjectID, page int, limit int) ([]db.Order, erro
 	return orders, nil
 }
 
-func GetOrderById(userId primitive.ObjectID, orderId primitive.ObjectID) (*db.Order, error) {
+func GetOrderById(orderId primitive.ObjectID) (*db.Order, error) {
 	order := &db.Order{}
-	err := mgm.Coll(order).First(bson.M{field.ID: orderId, "author": userId}, order)
+	err := mgm.Coll(order).First(bson.M{field.ID: orderId}, order)
 	if err != nil {
 		return nil, errors.New("cannot find order")
 	}

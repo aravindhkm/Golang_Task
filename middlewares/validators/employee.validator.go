@@ -42,7 +42,7 @@ func GetEmployeesValidator() gin.HandlerFunc {
 func UpdateEmployeeValidator() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		var employeeRequest utils.EmployeeRequest
+		var employeeRequest utils.UpdateEmployeeRequest
 		_ = c.ShouldBindBodyWith(&employeeRequest, binding.JSON)
 
 		if err := employeeRequest.Validate(); err != nil {

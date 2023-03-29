@@ -76,7 +76,7 @@ func CreateNewOrder(c *gin.Context) {
 		data, err := services.FindProductById(getId)
 
 		if err != nil ||
-			requestBody.OrderQuantity[index] == 0 ||
+			requestBody.OrderQuantity[index] <= 0 ||
 			requestBody.OrderQuantity[index] > data.Stock {
 			response.StatusCode = http.StatusBadRequest
 			response.Message = "Unable to place order"
@@ -84,13 +84,20 @@ func CreateNewOrder(c *gin.Context) {
 			return
 		}
 
-		services.UpdateProductStock(requestBody.ProductId[index], requestBody.OrderQuantity[index])
-
 		if data.Category == "Premium" {
 			totalPremium++
 		}
 
 		totalCost += data.Price * requestBody.OrderQuantity[index]
+	}
+
+	err = services.UpdateMultipleProductStock(requestBody.ProductId, requestBody.OrderQuantity)
+
+	if err != nil {
+		response.StatusCode = http.StatusBadRequest
+		response.Message = "order data is invalid"
+		response.SendResponse(c)
+		return
 	}
 
 	if totalPremium >= 3 {
@@ -215,7 +222,7 @@ func DispatchOrder(c *gin.Context) {
 	userId, exists := c.Get("userId")
 	if !exists {
 		response.StatusCode = http.StatusBadRequest
-		response.Message = "cannot get user"
+		response.Message = "cannot get order"
 		response.SendResponse(c)
 		return
 	}
@@ -342,7 +349,7 @@ func GetOrders(c *gin.Context) {
 		Success:    false,
 	}
 
-	userId, exists := c.Get("userId")
+	_, exists := c.Get("userId")
 	if !exists {
 		response.Message = "cannot get user"
 		response.SendResponse(c)
@@ -353,7 +360,7 @@ func GetOrders(c *gin.Context) {
 	page, _ := strconv.Atoi(pageQuery)
 	limit := 5
 
-	orders, _ := services.GetOrders(userId.(primitive.ObjectID), page, limit)
+	orders, _ := services.GetOrders(page, limit)
 	hasPrev := page > 0
 	hasNext := len(orders) > limit
 
@@ -387,7 +394,7 @@ func GetOneOrder(c *gin.Context) {
 	idHex := c.Param("id")
 	orderId, _ := primitive.ObjectIDFromHex(idHex)
 
-	userId, exists := c.Get("userId")
+	_, exists := c.Get("userId")
 	if !exists {
 		response.Message = "cannot get user"
 		response.SendResponse(c)
@@ -400,7 +407,7 @@ func GetOneOrder(c *gin.Context) {
 	// 	return
 	// }
 
-	order, err := services.GetOrderById(userId.(primitive.ObjectID), orderId)
+	order, err := services.GetOrderById(orderId)
 	if err != nil {
 		response.Message = err.Error()
 		response.SendResponse(c)

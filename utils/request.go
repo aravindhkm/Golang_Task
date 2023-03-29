@@ -106,6 +106,22 @@ func (a EmployeeRequest) Validate() error {
 	)
 }
 
+type UpdateEmployeeRequest struct {
+	Name    string `json:"name"`
+	Email   string `json:"email"`
+	Mobile  uint   `json:"mobile"`
+	Address string `json:"address"`
+}
+
+func (a UpdateEmployeeRequest) Validate() error {
+	return validation.ValidateStruct(&a,
+		validation.Field(&a.Name, validation.Required, validation.Length(3, 64)),
+		validation.Field(&a.Email, validation.Required, is.Email),
+		validation.Field(&a.Mobile, validation.Required),
+		validation.Field(&a.Address, validation.Required),
+	)
+}
+
 type ProductRequest struct {
 	Title       string   `json:"title"`
 	Description string   `json:"description"`

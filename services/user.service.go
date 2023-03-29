@@ -163,7 +163,7 @@ func FindAdminById(userId primitive.ObjectID) (*db.Admin, error) {
 	admin := &db.Admin{}
 	err := mgm.Coll(admin).FindByID(userId, admin)
 	if err != nil {
-		return nil, errors.New("cannot find user")
+		return nil, errors.New("cannot find admin")
 	}
 
 	return admin, nil
@@ -174,7 +174,7 @@ func FindEmployeeById(userId primitive.ObjectID) (*db.Employee, error) {
 	employee := &db.Employee{}
 	err := mgm.Coll(employee).FindByID(userId, employee)
 	if err != nil {
-		return nil, errors.New("cannot find user")
+		return nil, errors.New("cannot find employee")
 	}
 
 	return employee, nil
@@ -185,7 +185,7 @@ func FindProductById(userId primitive.ObjectID) (*db.Product, error) {
 	product := &db.Product{}
 	err := mgm.Coll(product).FindByID(userId, product)
 	if err != nil {
-		return nil, errors.New("cannot find user")
+		return nil, errors.New("cannot find product")
 	}
 
 	return product, nil
@@ -196,7 +196,7 @@ func FindOrderById(userId primitive.ObjectID) (*db.Order, error) {
 	order := &db.Order{}
 	err := mgm.Coll(order).FindByID(userId, order)
 	if err != nil {
-		return nil, errors.New("cannot find user")
+		return nil, errors.New("cannot find order")
 	}
 
 	return order, nil
@@ -207,7 +207,7 @@ func FindUserByEmail(email string) (*db.User, error) {
 	user := &db.User{}
 	err := mgm.Coll(user).First(bson.M{"email": email}, user)
 	if err != nil {
-		return nil, errors.New("cannot find user")
+		return nil, errors.New("cannot find user by email")
 	}
 
 	return user, nil
@@ -218,7 +218,7 @@ func FindAdminByEmail(email string) (*db.Admin, error) {
 	admin := &db.Admin{}
 	err := mgm.Coll(admin).First(bson.M{"email": email}, admin)
 	if err != nil {
-		return nil, errors.New("cannot find user")
+		return nil, errors.New("cannot find admin by email")
 	}
 
 	return admin, nil
@@ -229,7 +229,7 @@ func FindEmployeeByEmail(email string) (*db.Employee, error) {
 	employee := &db.Employee{}
 	err := mgm.Coll(employee).First(bson.M{"email": email}, employee)
 	if err != nil {
-		return nil, errors.New("cannot find user")
+		return nil, errors.New("cannot find employee by email")
 	}
 
 	return employee, nil

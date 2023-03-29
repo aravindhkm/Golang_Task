@@ -55,17 +55,6 @@ func CreateNewProduct(c *gin.Context) {
 		return
 	}
 
-	// title string,
-	// description string,
-	// price int,
-	// rating float32,
-	// stock int,
-	// brand string,
-	// productType string,
-	// category string,
-	// thumbnail string,
-	// image []string,
-
 	product, err := services.CreateProduct(
 		requestBody.Title,
 		requestBody.Description,
@@ -138,7 +127,7 @@ func GetAllProducts(c *gin.Context) {
 		Success:    false,
 	}
 
-	userId, exists := c.Get("userId")
+	_, exists := c.Get("userId")
 	if !exists {
 		response.StatusCode = http.StatusBadRequest
 		response.Message = "cannot get user"
@@ -150,14 +139,13 @@ func GetAllProducts(c *gin.Context) {
 	page, _ := strconv.Atoi(pageQuery)
 	limit := 5
 
-	isAdmin, err := services.FindAdminById(userId.(primitive.ObjectID))
-
-	if err != nil || isAdmin.Role != db.RoleAdmin {
-		response.StatusCode = http.StatusBadRequest
-		response.Message = "admin only accessible"
-		response.SendResponse(c)
-		return
-	}
+	// isAdmin, err := services.FindAdminById(userId.(primitive.ObjectID))
+	// if err != nil || isAdmin.Role != db.RoleAdmin {
+	// 	response.StatusCode = http.StatusBadRequest
+	// 	response.Message = "admin only accessible"
+	// 	response.SendResponse(c)
+	// 	return
+	// }
 
 	products, _ := services.GetAllProducts(page, limit)
 	hasPrev := page > 0
@@ -193,11 +181,11 @@ func GetOneProduct(c *gin.Context) {
 	idHex := c.Param("id")
 	productId, _ := primitive.ObjectIDFromHex(idHex)
 
-	userId, exists := c.Get("userId")
+	_, exists := c.Get("userId")
 
-	if !exists || productId != userId {
+	if !exists {
 		response.StatusCode = http.StatusBadRequest
-		response.Message = "cannot get user"
+		response.Message = "cannot get product"
 		response.SendResponse(c)
 		return
 	}
@@ -246,9 +234,17 @@ func UpdateProduct(c *gin.Context) {
 	productId, _ := primitive.ObjectIDFromHex(idHex)
 
 	userId, exists := c.Get("userId")
-	if !exists || productId != userId {
+	if !exists {
 		response.StatusCode = http.StatusBadRequest
 		response.Message = "cannot get user"
+		response.SendResponse(c)
+		return
+	}
+
+	adminData, err := services.FindAdminById(userId.(primitive.ObjectID))
+	if err != nil || adminData.Role != db.RoleAdmin {
+		response.StatusCode = http.StatusBadRequest
+		response.Message = err.Error()
 		response.SendResponse(c)
 		return
 	}
@@ -256,7 +252,7 @@ func UpdateProduct(c *gin.Context) {
 	var productRequest utils.ProductRequest
 	_ = c.ShouldBindBodyWith(&productRequest, binding.JSON)
 
-	err := services.UpdateProduct(productId, &productRequest)
+	err = services.UpdateProduct(productId, &productRequest)
 	if err != nil {
 		response.StatusCode = http.StatusBadRequest
 		response.Message = err.Error()
@@ -290,14 +286,22 @@ func DeleteProduct(c *gin.Context) {
 	productId, _ := primitive.ObjectIDFromHex(idHex)
 
 	userId, exists := c.Get("userId")
-	if !exists || productId != userId {
+	if !exists {
 		response.StatusCode = http.StatusBadRequest
-		response.Message = "cannot get user"
+		response.Message = "cannot get product"
 		response.SendResponse(c)
 		return
 	}
 
-	err := services.DeleteProduct(userId.(primitive.ObjectID))
+	adminData, err := services.FindAdminById(userId.(primitive.ObjectID))
+	if err != nil || adminData.Role != db.RoleAdmin {
+		response.StatusCode = http.StatusBadRequest
+		response.Message = err.Error()
+		response.SendResponse(c)
+		return
+	}
+
+	err = services.DeleteProduct(productId)
 	if err != nil {
 		response.StatusCode = http.StatusBadRequest
 		response.Message = err.Error()

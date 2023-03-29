@@ -27,6 +27,7 @@ func New() *gin.Engine {
 		NoteRoute(v1, middlewares.JWTMiddleware())
 		EmployeeRoute(v1, middlewares.JWTMiddleware())
 		OrderRoute(v1, middlewares.JWTMiddleware())
+		ProductRoute(v1, middlewares.JWTMiddleware())
 	}
 
 	docs.SwaggerInfo.BasePath = v1.BasePath() // adds /v1 to swagger base path

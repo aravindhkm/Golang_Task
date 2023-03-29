@@ -29,28 +29,15 @@ func OrderRoute(router *gin.RouterGroup, handlers ...gin.HandlerFunc) {
 		)
 
 		emp.GET(
-			"",
-			validators.GetNotesValidator(),
-			controllers.GetNotes,
+			"/getDetails",
+			validators.GetOrdersValidator(),
+			controllers.GetOrders,
 		)
 
 		emp.GET(
-			"/:id",
+			"/getDetails/:id",
 			validators.PathIdValidator(),
-			controllers.GetOneNote,
-		)
-
-		emp.PUT(
-			"/:id",
-			validators.PathIdValidator(),
-			validators.UpdateNoteValidator(),
-			controllers.UpdateNote,
-		)
-
-		emp.DELETE(
-			"/:id",
-			validators.PathIdValidator(),
-			controllers.DeleteNote,
+			controllers.GetOneOrder,
 		)
 	}
 }
